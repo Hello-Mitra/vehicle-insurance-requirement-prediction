@@ -1,5 +1,7 @@
 ipykernel
+loguru
 setuptools
+python-dotenv
 wheel
 pandas
 numpy
