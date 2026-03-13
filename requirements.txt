@@ -22,4 +22,6 @@ python-multipart
 uvicorn
 jinja2
 imblearn
+xgboost
+lightgbm
 -e .
