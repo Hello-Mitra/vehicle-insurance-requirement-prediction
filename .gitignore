@@ -2,6 +2,7 @@
 projectflow.txt
 crashcourse.txt
 .env
+artifact
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
