@@ -4,7 +4,7 @@ from sklearn.metrics import recall_score
 from vehicle_insurance.exception import MyException
 from vehicle_insurance.constants import TARGET_COLUMN
 from vehicle_insurance.logger import logging
-from vehicle_insurance.utils.main_utils import load_object, read_data, create_features, change_dtype
+from vehicle_insurance.utils.main_utils import load_object, read_data
 
 import sys
 import pandas as pd
@@ -67,15 +67,11 @@ class ModelEvaluation:
             logging.info("Loading test dataset for evaluation.")
             test_df = read_data(self.data_ingestion_artifact.test_file_path)
 
-            test_df = create_features(test_df)
-            test_df = change_dtype(test_df)
-
             y = test_df[TARGET_COLUMN]
             x = test_df.drop(columns=[TARGET_COLUMN])
 
-            logging.info("Test data loaded and now transforming it for prediction...")
+            logging.info("Test data loaded. Passing raw features to production model pipeline...")
 
-            trained_model = load_object(file_path=self.model_trainer_artifact.trained_model_file_path)
             logging.info("Trained model loaded/exists.")
             trained_model_recall_score = self.model_trainer_artifact.metric_artifact.recall_score
             logging.info(f"Recall_Score for this model: {trained_model_recall_score}")
@@ -84,7 +80,7 @@ class ModelEvaluation:
             best_model = self.get_best_model()
 
             if best_model is not None:
-                logging.info(f"Computing F1_Score for production model..")
+                logging.info(f"Computing Recall Score for production model..")
                 y_hat_best_model = best_model.predict(x)
                 best_model_recall_score = recall_score(y, y_hat_best_model)
                 logging.info(f"Recall_Score-Production Model: {best_model_recall_score}, Recall_Score-New Trained Model: {trained_model_recall_score}")

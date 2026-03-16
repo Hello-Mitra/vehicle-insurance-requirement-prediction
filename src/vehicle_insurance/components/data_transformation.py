@@ -11,7 +11,8 @@ from vehicle_insurance.entity.config_entity import DataTransformationConfig
 from vehicle_insurance.entity.artifact_entity import DataTransformationArtifact, DataIngestionArtifact, DataValidationArtifact
 from vehicle_insurance.exception import MyException
 from vehicle_insurance.logger import logging
-from vehicle_insurance.utils.main_utils import save_object, save_numpy_array_data, read_yaml_file, read_data, create_features, change_dtype
+from vehicle_insurance.components.feature_engineering import CustomFeatureEngineer
+from vehicle_insurance.utils.main_utils import save_object, save_numpy_array_data, read_yaml_file, read_data
 
 
 class DataTransformation:
@@ -47,6 +48,8 @@ class DataTransformation:
             ohe_columns = self._schema_config['ohe_columns']
             logging.info("Cols loaded from schema.")
 
+            feature_engineer = CustomFeatureEngineer()
+
             # Creating preprocessor pipeline
             preprocessor = ColumnTransformer(
                 transformers=[
@@ -65,7 +68,10 @@ class DataTransformation:
             # preprocessor.get_feature_names_out()
     
             # Wrapping everything in a single pipeline
-            final_pipeline = Pipeline(steps=[("Preprocessor", preprocessor)])
+            final_pipeline = Pipeline(steps=[
+                ("feature_engineering", feature_engineer),
+                ("Preprocessor", preprocessor)]
+                )
             logging.info("Final Pipeline Ready!!")
             logging.info("Exited get_data_transformer_object method of DataTransformation class")
             return final_pipeline
@@ -89,19 +95,15 @@ class DataTransformation:
             test_df = read_data(file_path=self.data_ingestion_artifact.test_file_path)
             logging.info("Train-Test data loaded")
 
-            # Apply custom transformations in specified sequence
-            input_feature_train_df = create_features(train_df)
-            input_feature_train_df = change_dtype(input_feature_train_df)
-
-            input_feature_test_df = create_features(test_df)
-            input_feature_test_df = change_dtype(input_feature_test_df)
-            logging.info("Custom transformations applied to train and test data")
+            input_feature_train_df = train_df.copy()
+            input_feature_test_df = test_df.copy()
 
             target_feature_train_df = input_feature_train_df[TARGET_COLUMN]
-            input_feature_train_df = input_feature_train_df.drop(columns=[TARGET_COLUMN])
-
             target_feature_test_df = input_feature_test_df[TARGET_COLUMN]
-            input_feature_test_df = input_feature_test_df.drop(columns=[TARGET_COLUMN])
+
+            input_feature_train_df.drop(columns=[TARGET_COLUMN], inplace=True)
+            input_feature_test_df.drop(columns=[TARGET_COLUMN], inplace=True)
+
             logging.info("Input and Target cols defined for both train and test df.")
 
             logging.info("Starting data transformation")
@@ -109,7 +111,10 @@ class DataTransformation:
             logging.info("Got the preprocessor object")
 
             logging.info("Initializing transformation for Training-data")
-            input_feature_train_arr = preprocessor.fit_transform(input_feature_train_df)
+            input_feature_train_arr = preprocessor.fit_transform(
+                                                input_feature_train_df,
+                                                target_feature_train_df
+                                                )
             logging.info("Initializing transformation for Testing-data")
             input_feature_test_arr = preprocessor.transform(input_feature_test_df)
             logging.info("Transformation done end to end to train-test df.")

@@ -7,15 +7,6 @@ from sklearn.pipeline import Pipeline
 from vehicle_insurance.exception import MyException
 from vehicle_insurance.logger import logging
 
-class TargetValueMapping:
-    def __init__(self):
-        self.yes:int = 0
-        self.no:int = 1
-    def _asdict(self):
-        return self.__dict__
-    def reverse_mapping(self):
-        mapping_response = self._asdict()
-        return dict(zip(mapping_response.values(),mapping_response.keys()))
 
 class MyModel:
     def __init__(self, preprocessing_object: Pipeline, trained_model_object: object):
@@ -26,10 +17,11 @@ class MyModel:
         self.preprocessing_object = preprocessing_object
         self.trained_model_object = trained_model_object
 
-    def predict(self, dataframe: pd.DataFrame) -> DataFrame:
+    def predict(self, dataframe: pd.DataFrame):
         """
-        Function accepts preprocessed inputs (with all custom transformations already applied),
-        applies scaling using preprocessing_object, and performs prediction on transformed features.
+        This method accepts raw input features as a pandas DataFrame.
+        The saved preprocessing pipeline (feature engineering, encoding,
+        scaling, etc.) is applied before the trained model generates predictions.
         """
         try:
             logging.info("Starting prediction process.")
@@ -45,6 +37,31 @@ class MyModel:
 
         except Exception as e:
             logging.error("Error occurred in predict method", exc_info=True)
+            raise MyException(e, sys) from e
+        
+    
+    def predict_proba(self, dataframe: pd.DataFrame):
+        """
+        This method accepts raw input features as a pandas DataFrame,
+        applies the saved preprocessing pipeline, and returns the
+        predicted probability distribution across all possible classes.
+        """
+        try:
+            logging.info("Starting probability prediction process.")
+
+            # Apply preprocessing transformations
+            logging.info("Applying preprocessing transformations.")
+            transformed_feature = self.preprocessing_object.transform(dataframe)
+
+            # Generate probability predictions
+            logging.info("Generating class probability estimates.")
+            probabilities = self.trained_model_object.predict_proba(transformed_feature)
+
+            logging.info("Probability prediction completed successfully.")
+            return probabilities
+
+        except Exception as e:
+            logging.error("Error occurred in predict_proba method.", exc_info=True)
             raise MyException(e, sys) from e
 
 

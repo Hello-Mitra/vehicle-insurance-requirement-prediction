@@ -33,7 +33,6 @@ class Proj1Estimator:
         Load the model from the model_path
         :return:
         """
-
         return self.s3.load_model(self.model_path,bucket_name=self.bucket_name)
 
     def save_model(self,from_file,remove:bool=False)->None:
@@ -62,5 +61,16 @@ class Proj1Estimator:
             if self.loaded_model is None:
                 self.loaded_model = self.load_model()
             return self.loaded_model.predict(dataframe=dataframe)
+        except Exception as e:
+            raise MyException(e, sys)
+        
+    
+    def predict_proba(self, dataframe: DataFrame):
+        try:
+            if self.loaded_model is None:
+                self.loaded_model = self.load_model()
+
+            return self.loaded_model.predict_proba(dataframe)
+
         except Exception as e:
             raise MyException(e, sys)

@@ -37,7 +37,7 @@ class ModelTrainer:
             x_train, y_train, x_test, y_test = train[:, :-1], train[:, -1], test[:, :-1], test[:, -1]
             logging.info("train-test split done.")
 
-            # Initialize RandomForestClassifier with specified parameters
+            # Initialize LogisticRegression Classifier with specified parameters
             model = LogisticRegression(
                 max_iter= self.model_trainer_config._max_iter,
                 class_weight= self.model_trainer_config._class_weight,

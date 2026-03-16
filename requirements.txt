@@ -1,13 +1,9 @@
-ipykernel
-loguru
 setuptools
-python-dotenv
 wheel
+python-dotenv
+ipykernel
 pandas
 numpy
-matplotlib
-plotly
-seaborn
 scikit-learn
 pymongo
 from_root
@@ -18,10 +14,9 @@ boto3
 mypy-boto3-s3
 botocore
 fastapi
+pydantic
 python-multipart
 uvicorn
-jinja2
-imblearn
-xgboost
-lightgbm
+streamlit
+requests
 -e .

@@ -1,25 +1,25 @@
 import sys
-from src.entity.config_entity import VehiclePredictorConfig
-from src.entity.s3_estimator import Proj1Estimator
-from src.exception import MyException
-from src.logger import logging
+from vehicle_insurance.entity.config_entity import VehiclePredictorConfig
+from vehicle_insurance.entity.s3_estimator import Proj1Estimator
+from vehicle_insurance.exception import MyException
+from vehicle_insurance.logger import logging
 from pandas import DataFrame
 
 
 class VehicleData:
-    def __init__(self,
-                Gender,
-                Age,
-                Driving_License,
-                Region_Code,
-                Previously_Insured,
-                Annual_Premium,
-                Policy_Sales_Channel,
-                Vintage,
-                Vehicle_Age_lt_1_Year,
-                Vehicle_Age_gt_2_Years,
-                Vehicle_Damage_Yes
-                ):
+    def __init__(
+        self,
+        Gender,
+        Age,
+        Driving_License,
+        Region_Code,
+        Previously_Insured,
+        Vehicle_Age,
+        Vehicle_Damage,
+        Annual_Premium,
+        Policy_Sales_Channel,
+        Vintage
+    ):
         """
         Vehicle Data constructor
         Input: all features of the trained model for prediction
@@ -30,19 +30,18 @@ class VehicleData:
             self.Driving_License = Driving_License
             self.Region_Code = Region_Code
             self.Previously_Insured = Previously_Insured
+            self.Vehicle_Age = Vehicle_Age
+            self.Vehicle_Damage = Vehicle_Damage
             self.Annual_Premium = Annual_Premium
             self.Policy_Sales_Channel = Policy_Sales_Channel
             self.Vintage = Vintage
-            self.Vehicle_Age_lt_1_Year = Vehicle_Age_lt_1_Year
-            self.Vehicle_Age_gt_2_Years = Vehicle_Age_gt_2_Years
-            self.Vehicle_Damage_Yes = Vehicle_Damage_Yes
 
         except Exception as e:
             raise MyException(e, sys) from e
 
     def get_vehicle_input_data_frame(self)-> DataFrame:
         """
-        This function returns a DataFrame from USvisaData class input
+        This function returns a DataFrame from VehicleData class input
         """
         try:
             
@@ -57,7 +56,7 @@ class VehicleData:
         """
         This function returns a dictionary from VehicleData class input
         """
-        logging.info("Entered get_usvisa_data_as_dict method as VehicleData class")
+        logging.info("Entered get_vehicle_data_as_dict method as VehicleData class")
 
         try:
             input_data = {
@@ -66,12 +65,12 @@ class VehicleData:
                 "Driving_License": [self.Driving_License],
                 "Region_Code": [self.Region_Code],
                 "Previously_Insured": [self.Previously_Insured],
+                "Vehicle_Age": [self.Vehicle_Age],
+                "Vehicle_Damage": [self.Vehicle_Damage],
                 "Annual_Premium": [self.Annual_Premium],
                 "Policy_Sales_Channel": [self.Policy_Sales_Channel],
-                "Vintage": [self.Vintage],
-                "Vehicle_Age_lt_1_Year": [self.Vehicle_Age_lt_1_Year],
-                "Vehicle_Age_gt_2_Years": [self.Vehicle_Age_gt_2_Years],
-                "Vehicle_Damage_Yes": [self.Vehicle_Damage_Yes]
+                "Vintage": [self.Vintage]
+
             }
 
             logging.info("Created vehicle data dict")
@@ -91,7 +90,7 @@ class VehicleDataClassifier:
         except Exception as e:
             raise MyException(e, sys)
 
-    def predict(self, dataframe) -> str:
+    def predict(self, dataframe):
         """
         This is the method of VehicleDataClassifier
         Returns: Prediction in string format
@@ -102,9 +101,25 @@ class VehicleDataClassifier:
                 bucket_name=self.prediction_pipeline_config.model_bucket_name,
                 model_path=self.prediction_pipeline_config.model_file_path,
             )
-            result =  model.predict(dataframe)
-            
-            return result
+            prediction = model.predict(dataframe)[0]
+            probs = model.predict_proba(dataframe)[0]
+
+            label_map = {
+                0: "Not Interested",
+                1: "Interested"
+            }
+
+            prob_dict = {
+                label_map[i]: float(probs[i]) for i in range(len(probs))
+            }
+
+            response = {
+                "prediction": label_map[int(prediction)],
+                "confidence": float(max(probs)),
+                "class_probabilities": prob_dict
+            }
+
+            return response
         
         except Exception as e:
             raise MyException(e, sys)
