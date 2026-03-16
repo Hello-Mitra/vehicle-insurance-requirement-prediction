@@ -33,7 +33,23 @@ drop_columns: _id
 num_features:
   - Age
   - Vintage
+  - channel_target
+  - region_target
+  - Vehicle_Age_num
+  - Age_x_Vehicle_Age
+  - Channel_freq
+  - Region_Code_freq
+  - Age_x_Channel
+  - Age_x_Region
 
 
 mm_columns:
   - Annual_Premium
+
+ohe_columns:
+  - Gender
+  - Driving_License
+  - Previously_Insured
+  - Damage_Age
+  - Vehicle_Damage_bin
+  - Damage_x_NotInsured
