@@ -1,26 +1,64 @@
-from fastapi import FastAPI
-from pydantic import BaseModel
+from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import Response
+from fastapi import HTTPException
 
 from vehicle_insurance.pipeline.prediction_pipeline import (
     VehicleData,
     VehicleDataClassifier
 )
 
+from vehicle_insurance.constants import APP_HOST, APP_PORT
 from vehicle_insurance.schema.user_input import UserInput
 from vehicle_insurance.schema.prediction_response import PredictionResponse
+from vehicle_insurance.pipeline.training_pipeline import TrainPipeline
 
 app = FastAPI(title="Vehicle Insurance Prediction API")
 
+# Allow all origins for Cross-Origin Resource Sharing (CORS)
+origins = ["*"]
+
+# Configure middleware to handle CORS, allowing requests from any origin
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 
 @app.get("/")
-def home():
+async def home():
     return {"message": "Vehicle Insurance Prediction API running"}
 
 
-@app.post("/predict", response_model=PredictionResponse)
-def predict(data: UserInput):
+@app.get("/health")
+async def health_check():
+    return {"status":"OK"}
 
-    vehicle_data = VehicleData(
+# Route to trigger the model training process
+@app.get("/train")
+async def trainRouteClient():
+    """
+    Endpoint to initiate the model training pipeline.
+    """
+    try:
+        train_pipeline = TrainPipeline()
+        train_pipeline.run_pipeline()
+        return {"message": "Training successful"}
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/predict", response_model=PredictionResponse)
+async def predictRouteClient(data: UserInput):
+    """
+    Endpoint to initiate the model training pipeline.
+    """
+    try:
+        vehicle_data = VehicleData(
         Gender=data.Gender,
         Age=data.Age,
         Driving_License=data.Driving_License,
@@ -31,12 +69,14 @@ def predict(data: UserInput):
         Annual_Premium=data.Annual_Premium,
         Policy_Sales_Channel=data.Policy_Sales_Channel,
         Vintage=data.Vintage
-    )
+        )
 
-    vehicle_df = vehicle_data.get_vehicle_input_data_frame()
+        vehicle_df = vehicle_data.get_vehicle_input_data_frame()
 
-    model = VehicleDataClassifier()
+        model = VehicleDataClassifier()
 
-    result = model.predict(vehicle_df)
+        result = model.predict(vehicle_df)
 
-    return PredictionResponse(**result)
+        return PredictionResponse(**result)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

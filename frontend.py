@@ -1,15 +1,15 @@
 import streamlit as st
 import requests
 
-API_URL = "http://127.0.0.1:8002/predict"
+API_URL = "http://backend:5000/predict"
 
 st.title("Vehicle Insurance Predictor")
 
 Gender = st.selectbox("Gender", ["Male", "Female"])
 Age = st.slider("Age", 18, 100, 30)
-Driving_License = st.selectbox("Driving License", [0, 1])
+Driving_License = st.selectbox("Driving License (0: 'No' , 1: 'Yes')", [0, 1])
 Region_Code = st.selectbox("Region Code", list(range(0,53)))
-Previously_Insured = st.selectbox("Previously Insured", [0, 1])
+Previously_Insured = st.selectbox("Previously Insured (0: 'No' , 1: 'Yes')", [0, 1])
 Vehicle_Age = st.selectbox("Vehicle Age", ["< 1 Year","1-2 Year","> 2 Years"])
 Vehicle_Damage = st.selectbox("Vehicle Damage", ["Yes","No"])
 Annual_Premium = st.number_input("Annual Premium", 0.0)

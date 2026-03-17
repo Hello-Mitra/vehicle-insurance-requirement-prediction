@@ -16,6 +16,7 @@ botocore
 fastapi
 pydantic
 python-multipart
+imblearn
 uvicorn
 streamlit
 requests

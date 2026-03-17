@@ -3,6 +3,8 @@ projectflow.txt
 crashcourse.txt
 .env
 artifact
+logs
+vehicle-insurance-key.pem
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
