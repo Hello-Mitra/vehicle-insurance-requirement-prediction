@@ -6,8 +6,6 @@ COPY requirements.txt .
 
 COPY . .
 
-RUN touch /app/.project-root
-
 RUN pip install --no-cache-dir -r requirements.txt
 
 EXPOSE 5000
